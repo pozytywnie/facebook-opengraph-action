@@ -1,0 +1,2 @@
+django-celery
+django-facebook-auth
