@@ -70,6 +70,7 @@ To create and send an action you need to call opengraph_action.create_and_send_a
 - OpenGraphActionModel model class used for given opengraph action
 
 Here is an example from a class based view:
+::
 
     def _send_to_facebook(self):
         kwargs = {
@@ -86,7 +87,6 @@ Here is an example from a class based view:
                 'object',
                 models.FacebookPhotoLikeAction
             )
-
 
 Things like action and og:type values you can get from the opengraph configuration of your Facebook app
 (when you create an action there you can view example code showcasing those values). The content must have correct og:tags
