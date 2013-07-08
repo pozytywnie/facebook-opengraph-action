@@ -1,3 +1,4 @@
 django-celery
 django-facebook-auth
+django-redis-metrics==0.5.1
 facepy

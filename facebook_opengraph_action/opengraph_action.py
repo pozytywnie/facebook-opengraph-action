@@ -2,6 +2,7 @@ from celery import task
 from celery.utils.log import get_task_logger
 from django.conf import settings
 import facepy
+from redis_metrics import metric
 
 logger = get_task_logger(__name__)
 
@@ -20,6 +21,9 @@ class OpengraphAction(object):
         self.action_name = action_name
         self.object_name = object_name
         self.action_logging_model = action_logging_model
+        self.metric_success_key = '%s_%s_success' % (self.object_name, self.action_name)
+        self.metric_failure_key = '%s_%s_failure' % (self.object_name, self.action_name)
+        self.USE_METRICS = getattr(settings, 'USE_METRICS', False)
 
     def run(self):
         try:
@@ -39,13 +43,24 @@ class OpengraphAction(object):
             response = graph.post('me/%s' % action, **kwargs)
         except (facepy.graph_api.GraphAPI.FacebookError, facepy.FacepyError) as e:
             self._log_errors(e)
+            self._increment_failure_metric()
         else:
             try:
                 response_id = response['id']
             except TypeError as e:
                 self._log_errors(e)
+                self._increment_failure_metric()
             else:
                 self._save_successful_opengraph_action(long(response_id))
+                self._increment_success_metric()
+
+    def _increment_success_metric(self):
+        if self.USE_METRICS:
+            metric(self.metric_success_key, category="OpenGraphAction")
+
+    def _increment_failure_metric(self):
+        if self.USE_METRICS:
+            metric(self.metric_failure_key, category="OpenGraphAction")
 
     def _get_action(self):
         if self.action_name.count('.') > 0:
