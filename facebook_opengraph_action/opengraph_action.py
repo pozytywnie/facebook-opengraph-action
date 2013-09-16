@@ -8,13 +8,16 @@ logger = get_task_logger(__name__)
 
 
 @task()
-def create_and_send_action(user, url, content_id, action_name, object_name, action_logging_model):
-    action = OpengraphAction(user, url, content_id, action_name, object_name, action_logging_model)
+def create_and_send_action(user, url, content_id, action_name, object_name, action_logging_model,
+                           additional_action_kwargs={}):
+    action = OpengraphAction(user, url, content_id, action_name, object_name, action_logging_model,
+                             additional_action_kwargs)
     action.run()
 
 
 class OpengraphAction(object):
-    def __init__(self, user, url, content_id, action_name, object_name, action_logging_model):
+    def __init__(self, user, url, content_id, action_name, object_name, action_logging_model,
+                 additional_action_kwargs={}):
         self.user = user
         self.url = url
         self.content_id = content_id
@@ -24,6 +27,7 @@ class OpengraphAction(object):
         self.metric_success_key = '%s_%s_success' % (self.object_name, self.action_name)
         self.metric_failure_key = '%s_%s_failure' % (self.object_name, self.action_name)
         self.USE_METRICS = getattr(settings, 'USE_METRICS', False)
+        self.additional_action_kwargs = additional_action_kwargs
 
     def run(self):
         try:
@@ -37,7 +41,8 @@ class OpengraphAction(object):
         return self.user.facebookuser.graph
 
     def _create_action(self, graph):
-        kwargs = {self.object_name: self.url}
+        url_kwarg = {self.object_name: self.url}
+        kwargs = dict(url_kwarg, **self.additional_action_kwargs)
         action = self._get_action()
         try:
             response = graph.post('me/%s' % action, **kwargs)

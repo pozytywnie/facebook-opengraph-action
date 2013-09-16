@@ -9,7 +9,7 @@ def read(name):
 
 setup(
     name='facebook-opengraph-action',
-    version='0.2.3',
+    version='0.2.4',
     maintainer="Tomasz Wysocki",
     maintainer_email="tomasz@wysocki.info",
     packages=find_packages(),
