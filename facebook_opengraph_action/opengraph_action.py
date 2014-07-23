@@ -2,7 +2,6 @@ from celery import task
 from celery.utils.log import get_task_logger
 from django.conf import settings
 import facepy
-from redis_metrics import metric
 
 logger = get_task_logger(__name__)
 
@@ -61,10 +60,12 @@ class OpengraphAction(object):
 
     def _increment_success_metric(self):
         if self.USE_METRICS:
+            from redis_metrics import metric
             metric(self.metric_success_key, category="OpenGraphAction")
 
     def _increment_failure_metric(self):
         if self.USE_METRICS:
+            from redis_metrics import metric
             metric(self.metric_failure_key, category="OpenGraphAction")
 
     def _get_action(self):
