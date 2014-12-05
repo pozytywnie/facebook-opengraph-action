@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import User
 from django.db.models.loading import get_model
 
@@ -9,7 +11,8 @@ import facepy
 logger = get_task_logger(__name__)
 
 
-@task()
+@task(ignore_result=True, expires=timedelta(hours=1).total_seconds(),
+      countdown=10)
 def create_and_send_action(user, url, content_id, action_name, object_name,
                            action_logging_model,
                            additional_action_kwargs={}):
