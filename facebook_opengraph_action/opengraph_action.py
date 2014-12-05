@@ -1,3 +1,6 @@
+from django.contrib.auth.models import User
+from django.db.models.loading import get_model
+
 from celery import task
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -7,8 +10,22 @@ logger = get_task_logger(__name__)
 
 
 @task()
-def create_and_send_action(user, url, content_id, action_name, object_name, action_logging_model,
+def create_and_send_action(user, url, content_id, action_name, object_name,
+                           action_logging_model,
                            additional_action_kwargs={}):
+    deprected = False
+    if isinstance(user, int):
+        user = User.objects.get(id=user)
+    else:
+        deprected = True
+    if isinstance(action_logging_model, list) or isinstance(action_logging_model, tuple):
+        action_logging_model = get_model(*action_logging_model)
+    else:
+        deprected = True
+
+    if deprected:
+        logger.warning('Deprected create_and_send_action args types')
+
     action = OpengraphAction(user, url, content_id, action_name, object_name, action_logging_model,
                              additional_action_kwargs)
     action.run()
